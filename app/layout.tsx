@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import {
-  ClerkProvider
-} from '@clerk/nextjs'
+import { AuthProvider } from '@/components/AuthProvider';
 import { ToastProvider } from '@/components/ui/ToastProvider';
 
 import Footer from "@/components/footer";
@@ -49,7 +47,7 @@ export const metadata: Metadata = {
     "Pest Management",
     "Crop Health Monitoring",
     "Farm Automation",
-    "Data-Driven Farming",    
+    "Data-Driven Farming",
   ],
 };
 
@@ -59,22 +57,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-              <Navbar />
-              
-              <ToastProvider>
-
-        {children}
-        </ToastProvider>
-
-        <Footer />
-
+        <AuthProvider>
+          <Navbar />
+          <ToastProvider>
+            {children}
+          </ToastProvider>
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
-    </ClerkProvider>
   );
 }
