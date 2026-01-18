@@ -9,6 +9,10 @@
 </p>
 
 <p align="center">
+  <a href="https://agroflow-ivory.vercel.app/" target="_blank"><img src="https://img.shields.io/badge/🚀_Live_Demo-agroflow--ivory.vercel.app-00D4AA?style=for-the-badge" alt="Live Demo"></a>
+</p>
+
+<p align="center">
   <a href="#about">About</a> •
   <a href="#features">Features</a> •
   <a href="#live-demo">Demo</a> •
@@ -24,6 +28,7 @@
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?logo=supabase" alt="Supabase">
   <img src="https://img.shields.io/badge/Google-Gemini_AI-4285F4?logo=google" alt="Gemini AI">
   <img src="https://img.shields.io/badge/ESP32-IoT-E7352C?logo=espressif" alt="ESP32">
+  <a href="https://agroflow-ivory.vercel.app/"><img src="https://img.shields.io/badge/Deployed_on-Vercel-000000?logo=vercel" alt="Vercel"></a>
 </p>
 
 ---
@@ -343,22 +348,26 @@ Agroflow/
 
 ## 🎥 Demo
 
+### 🌐 Live Deployment
+
+**The application is live at: [https://agroflow-ivory.vercel.app/](https://agroflow-ivory.vercel.app/)**
+
 ### Live Pages
 
-| Page | Description |
-|------|-------------|
-| `/` | Landing page with feature overview |
-| `/dashboard` | Real-time sensor monitoring |
-| `/traceability` | Create batches & mint NFTs |
-| `/chatbot` | AI farming assistant |
-| `/verify/[qrCodeId]` | Consumer verification |
-| `/docs` | API documentation |
+| Page | Description | Link |
+|------|-------------|------|
+| `/` | Landing page with feature overview | [Visit](https://agroflow-ivory.vercel.app/) |
+| `/dashboard` | Real-time sensor monitoring | [Visit](https://agroflow-ivory.vercel.app/dashboard) |
+| `/traceability` | Create batches & mint NFTs | [Visit](https://agroflow-ivory.vercel.app/traceability) |
+| `/chatbot` | AI farming assistant | [Visit](https://agroflow-ivory.vercel.app/chatbot) |
+| `/verify/[qrCodeId]` | Consumer verification | [Visit](https://agroflow-ivory.vercel.app/verify/demo) |
+| `/docs` | API documentation | [Visit](https://agroflow-ivory.vercel.app/docs) |
 
 ### Test NFT Minting
 
 1. Get test MATIC from [Polygon Faucet](https://faucet.polygon.technology/)
 2. Connect MetaMask to Polygon Amoy
-3. Go to `/traceability` → Create batch → Mint NFT
+3. Go to [Traceability Page](https://agroflow-ivory.vercel.app/traceability) → Create batch → Mint NFT
 4. View your NFT on [PolygonScan](https://amoy.polygonscan.com/address/0x8e205B621E7D122C8B1FD2695080A5Ea31280709#tokentxnsErc721)
 
 ---
