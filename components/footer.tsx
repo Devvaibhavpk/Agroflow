@@ -24,12 +24,12 @@ export default function Footer() {
     ],
     resources: [
       { label: 'About', href: '/about' },
-      { label: 'Documentation', href: '#' },
-      { label: 'Support', href: '#' },
+      { label: 'Traceability', href: '/traceability' },
+      { label: 'Documentation', href: '/docs' },
     ],
     legal: [
-      { label: 'Privacy Policy', href: '#' },
-      { label: 'Terms of Service', href: '#' },
+      { label: 'Privacy Policy', href: '/privacy' },
+      { label: 'Terms of Service', href: '/terms' },
     ],
   };
 

@@ -667,6 +667,67 @@ export default function DashboardPage() {
             </motion.div>
           </div>
 
+          {/* Blockchain Quick Access */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.55 }}
+          >
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-indigo-50 overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <svg className="w-5 h-5 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                    <path d="M2 17l10 5 10-5" />
+                    <path d="M2 12l10 5 10-5" />
+                  </svg>
+                  Blockchain & AI
+                </CardTitle>
+                <CardDescription>Quick access to traceability and AI features</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <a href="/traceability" className="flex items-center gap-3 p-4 rounded-xl bg-white hover:bg-purple-50 border border-purple-100 transition-all hover:shadow-md group">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                        <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">NFT Traceability</p>
+                      <p className="text-xs text-gray-500">Mint harvest batches</p>
+                    </div>
+                  </a>
+                  <a href="/chatbot" className="flex items-center gap-3 p-4 rounded-xl bg-white hover:bg-green-50 border border-green-100 transition-all hover:shadow-md group">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <path d="M9 9h.01M15 9h.01M9 15c.5.5 1.5 1 3 1s2.5-.5 3-1" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">AgriBot AI</p>
+                      <p className="text-xs text-gray-500">Ask farming questions</p>
+                    </div>
+                  </a>
+                  <a href="/verify/AF-DEMO-001" className="flex items-center gap-3 p-4 rounded-xl bg-white hover:bg-blue-50 border border-blue-100 transition-all hover:shadow-md group">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        <path d="M9 12l2 2 4-4" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">Verify Demo</p>
+                      <p className="text-xs text-gray-500">See consumer view</p>
+                    </div>
+                  </a>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <motion.div

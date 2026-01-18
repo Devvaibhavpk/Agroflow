@@ -15,7 +15,13 @@ import {
   Zap,
   ArrowRight,
   CheckCircle2,
-  Github
+  Github,
+  Link2,
+  Shield,
+  QrCode,
+  Gem,
+  Bot,
+  FileText
 } from 'lucide-react';
 
 export default function AboutPage() {
@@ -23,49 +29,57 @@ export default function AboutPage() {
     {
       icon: Wifi,
       title: "IoT Sensor Integration",
-      description: "ESP32-powered sensors provide real-time data on temperature, humidity, and soil moisture with laboratory-grade accuracy."
+      description: "ESP32-powered sensors provide real-time data on temperature, humidity, and soil moisture with laboratory-grade accuracy.",
+      color: "from-blue-500 to-cyan-600"
     },
     {
-      icon: Droplets,
-      title: "Smart Irrigation",
-      description: "Automated water pump control based on soil moisture thresholds, reducing water waste by up to 50%."
+      icon: Link2,
+      title: "Blockchain Traceability",
+      description: "Each harvest batch is minted as an ERC-721 NFT on Polygon, providing immutable proof of origin and growing conditions.",
+      color: "from-purple-500 to-indigo-600"
     },
     {
       icon: Brain,
-      title: "AI-Powered Insights",
-      description: "Machine learning algorithms analyze your farm data to provide crop recommendations and predict optimal harvest times."
+      title: "AI-Powered AgriBot",
+      description: "Gemini-powered chatbot answers farming questions in 8 Indian languages with context from your sensor data.",
+      color: "from-green-500 to-emerald-600"
+    },
+    {
+      icon: Gem,
+      title: "NFT Certificates",
+      description: "Mint harvest batches as NFTs that consumers can verify by scanning QR codes on product packaging.",
+      color: "from-pink-500 to-rose-600"
     },
     {
       icon: BarChart3,
       title: "Real-Time Analytics",
-      description: "Beautiful dashboards with trend analysis, historical data visualization, and actionable insights."
+      description: "Beautiful dashboards with trend analysis, historical data visualization, and actionable insights.",
+      color: "from-orange-500 to-amber-600"
     },
     {
-      icon: Smartphone,
-      title: "Multi-Language Support",
-      description: "Agricultural chatbot available in 8 Indian languages, making smart farming accessible to all."
-    },
-    {
-      icon: Zap,
-      title: "Instant Alerts",
-      description: "Get notified immediately when conditions require attention - low moisture, high temperature, or system events."
+      icon: Droplets,
+      title: "Smart Irrigation",
+      description: "Automated water pump control based on soil moisture thresholds, reducing water waste by up to 50%.",
+      color: "from-teal-500 to-cyan-600"
     }
   ];
 
   const techStack = [
-    { name: "Next.js 15", description: "React framework" },
-    { name: "Supabase", description: "Backend & Auth" },
+    { name: "Next.js 15", description: "React Framework" },
+    { name: "Polygon", description: "Blockchain" },
+    { name: "Supabase", description: "Backend" },
     { name: "ESP32", description: "IoT Hardware" },
-    { name: "TailwindCSS", description: "Styling" },
-    { name: "Framer Motion", description: "Animations" },
-    { name: "Recharts", description: "Data Viz" },
+    { name: "ethers.js", description: "Web3" },
     { name: "Gemini AI", description: "Chatbot" },
-    { name: "WeatherAPI", description: "Forecasts" }
+    { name: "TailwindCSS", description: "Styling" },
+    { name: "MetaMask", description: "Wallet" },
+    { name: "QRCode", description: "Stickers" },
+    { name: "OpenSea", description: "NFT Market" }
   ];
 
   const stats = [
     { value: "50%", label: "Water Saved" },
-    { value: "30%", label: "Yield Increase" },
+    { value: "100%", label: "Tamper-Proof" },
     { value: "24/7", label: "Monitoring" },
     { value: "8+", label: "Languages" }
   ];
@@ -76,7 +90,7 @@ export default function AboutPage() {
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-40 -right-40 w-96 h-96 bg-green-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
-          <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-emerald-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
+          <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
         </div>
 
         <motion.div
@@ -85,18 +99,21 @@ export default function AboutPage() {
           transition={{ duration: 0.8 }}
           className="container mx-auto px-4 py-24 text-center relative z-10"
         >
-         
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-green-100 to-purple-100 text-green-700 text-sm font-medium mb-6">
+            <Link2 className="w-4 h-4" />
+            IoT + Blockchain + AI
+          </div>
 
           <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 tracking-tight">
-            The Future of Farming,<br />
-            <span className="bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent">
-              Reimagined
+            Smart Farming with<br />
+            <span className="bg-gradient-to-r from-green-600 via-emerald-500 to-purple-500 bg-clip-text text-transparent">
+              Blockchain Traceability
             </span>
           </h1>
 
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8 leading-relaxed">
-            Agroflow combines precision agriculture with cutting-edge IoT technology
-            to transform traditional farming into a data-driven, sustainable ecosystem.
+            Agroflow combines IoT sensors, NFT-based traceability on Polygon blockchain,
+            and AI-powered insights to transform traditional farming into a transparent, data-driven ecosystem.
           </p>
 
           <div className="flex flex-wrap justify-center gap-4">
@@ -106,7 +123,13 @@ export default function AboutPage() {
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+            <Link href="/traceability">
+              <Button variant="outline" className="rounded-full px-8 py-6 text-lg border-purple-300 text-purple-600 hover:bg-purple-50">
+                <Gem className="mr-2 w-5 h-5" />
+                NFT Traceability
+              </Button>
+            </Link>
+            <a href="https://github.com/Devvaibhavpk/Agroflow" target="_blank" rel="noopener noreferrer">
               <Button variant="outline" className="rounded-full px-8 py-6 text-lg">
                 <Github className="mr-2 w-5 h-5" />
                 View Source
@@ -122,14 +145,14 @@ export default function AboutPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {stats.map((stat, index) => (
               <motion.div
-                key={index}
+                key={stat.label}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
                 className="text-center p-6 rounded-2xl bg-white shadow-lg"
               >
-                <div className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
+                <div className="text-4xl font-bold bg-gradient-to-r from-green-600 to-purple-500 bg-clip-text text-transparent">
                   {stat.value}
                 </div>
                 <div className="text-gray-600 mt-1">{stat.label}</div>
@@ -152,14 +175,14 @@ export default function AboutPage() {
               Powerful Features
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Everything you need to modernize your farm and maximize yields
+              IoT monitoring, blockchain traceability, and AI insights in one platform
             </p>
           </motion.div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => (
               <motion.div
-                key={index}
+                key={feature.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -167,7 +190,7 @@ export default function AboutPage() {
               >
                 <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 h-full group">
                   <CardContent className="p-6">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
                       <feature.icon className="w-7 h-7 text-white" />
                     </div>
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
@@ -180,8 +203,8 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-24 bg-gradient-to-b from-gray-50 to-white">
+      {/* How Blockchain Works */}
+      <section className="py-24 bg-gradient-to-br from-purple-50 to-indigo-50">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0 }}
@@ -189,33 +212,39 @@ export default function AboutPage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-100 text-purple-700 text-sm font-medium mb-4">
+              <Link2 className="w-4 h-4" />
+              Blockchain Traceability
+            </div>
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              How It Works
+              How NFT Traceability Works
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Simple setup, powerful results
+              From farm to consumer with blockchain-verified authenticity
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
             {[
-              { step: "1", title: "Install Sensors", desc: "Place ESP32 sensors in your fields to monitor soil and weather conditions" },
-              { step: "2", title: "Connect to Cloud", desc: "Data syncs automatically to Supabase for real-time processing and storage" },
-              { step: "3", title: "Get Insights", desc: "Access your dashboard from anywhere to monitor, analyze, and control irrigation" }
+              { step: "1", icon: Droplets, title: "Grow & Monitor", desc: "IoT sensors track temperature, humidity, and moisture throughout the growing cycle" },
+              { step: "2", icon: Gem, title: "Mint NFT", desc: "Harvest batch data is hashed and minted as an ERC-721 NFT on Polygon" },
+              { step: "3", icon: QrCode, title: "Print QR Code", desc: "Generate branded QR stickers linking to blockchain verification" },
+              { step: "4", icon: Shield, title: "Consumer Verifies", desc: "Scanning QR shows immutable proof of origin and growing conditions" }
             ].map((item, index) => (
               <motion.div
-                key={index}
+                key={item.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.2 }}
-                className="text-center"
+                transition={{ delay: index * 0.15 }}
+                className="text-center bg-white rounded-2xl p-6 shadow-lg"
               >
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 text-white text-2xl font-bold flex items-center justify-center mx-auto mb-4">
-                  {item.step}
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 text-white text-xl font-bold flex items-center justify-center mx-auto mb-4">
+                  <item.icon className="w-6 h-6" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{item.title}</h3>
-                <p className="text-gray-600">{item.desc}</p>
+                <div className="text-xs text-purple-600 font-medium mb-2">Step {item.step}</div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
+                <p className="text-gray-600 text-sm">{item.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -239,12 +268,12 @@ export default function AboutPage() {
           <div className="flex flex-wrap justify-center gap-4 max-w-4xl mx-auto">
             {techStack.map((tech, index) => (
               <motion.div
-                key={index}
+                key={tech.name}
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.05 }}
-                className="px-6 py-3 rounded-full bg-white shadow-md border border-gray-100 flex items-center gap-2"
+                className="px-5 py-3 rounded-full bg-white shadow-md border border-gray-100 flex items-center gap-2"
               >
                 <CheckCircle2 className="w-4 h-4 text-green-500" />
                 <span className="font-medium">{tech.name}</span>
@@ -256,7 +285,7 @@ export default function AboutPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-24 bg-gradient-to-br from-green-600 to-emerald-600 relative overflow-hidden">
+      <section className="py-24 bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
         <div className="container mx-auto px-4 text-center relative z-10">
           <motion.div
@@ -268,14 +297,22 @@ export default function AboutPage() {
               Ready to Transform Your Farm?
             </h2>
             <p className="text-xl text-white/80 max-w-2xl mx-auto mb-8">
-              Join the smart farming revolution and start optimizing your agricultural operations today.
+              Start using blockchain-verified traceability and AI-powered insights today.
             </p>
-            <Link href="/signup">
-              <Button className="bg-white text-green-600 hover:bg-gray-100 rounded-full px-10 py-6 text-lg shadow-xl">
-                Get Started Free
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link href="/signup">
+                <Button className="bg-white text-green-600 hover:bg-gray-100 rounded-full px-10 py-6 text-lg shadow-xl">
+                  Get Started Free
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+              <Link href="/docs">
+                <Button variant="outline" className="border-white text-white hover:bg-white/10 rounded-full px-10 py-6 text-lg">
+                  <FileText className="mr-2 w-5 h-5" />
+                  Read Docs
+                </Button>
+              </Link>
+            </div>
           </motion.div>
         </div>
       </section>

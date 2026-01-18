@@ -21,6 +21,7 @@ export default function Navbar() {
 
   const links = [
     { href: '/dashboard', label: 'Dashboard' },
+    { href: '/traceability', label: 'Traceability' },
     { href: '/log', label: 'Logs' },
     { href: '/chatbot', label: 'ChatBot' },
   ];

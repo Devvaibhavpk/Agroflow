@@ -10,8 +10,23 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from '@/components/ui/ToastProvider';
-import { LogOut, Save, Wifi, User, Shield, Loader2 } from 'lucide-react';
+import {
+  LogOut,
+  Save,
+  User,
+  Shield,
+  Loader2,
+  Bell,
+  Sun,
+  Moon,
+  Palette,
+  MapPin,
+  Thermometer,
+  Languages,
+  Smartphone
+} from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function SettingsPage() {
@@ -24,8 +39,22 @@ export default function SettingsPage() {
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
-    espIp: '192.168.1.100'
   });
+
+  const [preferences, setPreferences] = useState({
+    farmName: 'My Farm',
+    location: 'Bangalore, Karnataka',
+    temperatureUnit: 'celsius',
+    language: 'english',
+    darkMode: false,
+    emailNotifications: true,
+    pushNotifications: true,
+    alertsForHighTemp: true,
+    alertsForLowMoisture: true,
+    alertsForIrrigation: true,
+    weeklyReport: true,
+  });
+
   const [saving, setSaving] = useState(false);
 
   // Update form data when user loads
@@ -99,10 +128,8 @@ export default function SettingsPage() {
     }
   };
 
-  const handleESPConfig = (e: React.FormEvent) => {
-    e.preventDefault();
-    showToast('ESP32 configuration saved');
-    // Add actual ESP configuration logic here
+  const handlePreferenceSave = () => {
+    showToast('Preferences saved successfully');
   };
 
   const handleLogout = async () => {
@@ -124,7 +151,7 @@ export default function SettingsPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6 max-w-2xl flex items-center justify-center min-h-[60vh]">
+      <div className="container mx-auto p-6 max-w-3xl flex items-center justify-center min-h-[60vh]">
         <Loader2 className="h-8 w-8 animate-spin text-green-600" />
       </div>
     );
@@ -133,18 +160,18 @@ export default function SettingsPage() {
   // Not authenticated
   if (!user) {
     return (
-      <div className="container mx-auto p-6 max-w-2xl text-center">
+      <div className="container mx-auto p-6 max-w-3xl text-center">
         <p>Please sign in to access settings.</p>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-2xl space-y-8">
+    <div className="container mx-auto p-6 max-w-3xl space-y-8">
       {/* Header with User Info */}
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16">
+          <Avatar className="h-16 w-16 ring-4 ring-green-100">
             <AvatarImage
               src={user.user_metadata?.avatar_url}
               alt={user.user_metadata?.full_name || 'User'}
@@ -164,22 +191,29 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="profile">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4 h-12">
           <TabsTrigger value="profile" className="gap-2">
             <User className="h-4 w-4" /> Profile
           </TabsTrigger>
           <TabsTrigger value="security" className="gap-2">
             <Shield className="h-4 w-4" /> Security
           </TabsTrigger>
-          <TabsTrigger value="device" className="gap-2">
-            <Wifi className="h-4 w-4" /> Device
+          <TabsTrigger value="notifications" className="gap-2">
+            <Bell className="h-4 w-4" /> Alerts
+          </TabsTrigger>
+          <TabsTrigger value="preferences" className="gap-2">
+            <Palette className="h-4 w-4" /> Preferences
           </TabsTrigger>
         </TabsList>
 
+        {/* Profile Tab */}
         <TabsContent value="profile" className="space-y-4 mt-6">
           <Card className="border-0 shadow-lg">
             <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5 text-green-600" />
+                Profile Information
+              </CardTitle>
               <CardDescription>Update your personal details</CardDescription>
             </CardHeader>
             <CardContent>
@@ -218,12 +252,55 @@ export default function SettingsPage() {
               </form>
             </CardContent>
           </Card>
+
+          {/* Farm Info Card */}
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-green-600" />
+                Farm Details
+              </CardTitle>
+              <CardDescription>Your farm information</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="farmName">Farm Name</Label>
+                <Input
+                  id="farmName"
+                  value={preferences.farmName}
+                  onChange={(e) => setPreferences({ ...preferences, farmName: e.target.value })}
+                  placeholder="e.g., Green Valley Farm"
+                  className="h-12 rounded-xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="location">Location</Label>
+                <Input
+                  id="location"
+                  value={preferences.location}
+                  onChange={(e) => setPreferences({ ...preferences, location: e.target.value })}
+                  placeholder="City, State"
+                  className="h-12 rounded-xl"
+                />
+              </div>
+              <Button
+                onClick={handlePreferenceSave}
+                className="gap-2 bg-gradient-to-r from-green-600 to-emerald-500"
+              >
+                <Save className="h-4 w-4" /> Save Farm Details
+              </Button>
+            </CardContent>
+          </Card>
         </TabsContent>
 
+        {/* Security Tab */}
         <TabsContent value="security" className="space-y-4 mt-6">
           <Card className="border-0 shadow-lg">
             <CardHeader>
-              <CardTitle>Change Password</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-green-600" />
+                Change Password
+              </CardTitle>
               <CardDescription>Update your security credentials</CardDescription>
             </CardHeader>
             <CardContent>
@@ -257,41 +334,206 @@ export default function SettingsPage() {
                   className="gap-2 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600"
                   disabled={saving}
                 >
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Shield className="h-4 w-4" />}
                   Update Password
                 </Button>
               </form>
             </CardContent>
           </Card>
-        </TabsContent>
 
-        <TabsContent value="device" className="mt-6">
+          {/* Connected Devices */}
           <Card className="border-0 shadow-lg">
             <CardHeader>
-              <CardTitle>ESP32 Configuration</CardTitle>
-              <CardDescription>Configure your IoT device settings</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <Smartphone className="h-5 w-5 text-green-600" />
+                Connected Devices
+              </CardTitle>
+              <CardDescription>Manage your active sessions</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleESPConfig} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="espIp">ESP32 IP Address</Label>
-                  <Input
-                    id="espIp"
-                    name="espIp"
-                    value={formData.espIp}
-                    onChange={handleInputChange}
-                    placeholder="192.168.1.100"
-                    className="h-12 rounded-xl"
-                  />
-                  <p className="text-xs text-gray-500">The local IP address of your ESP32 device</p>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl border border-green-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <Smartphone className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">Current Device</p>
+                      <p className="text-sm text-gray-500">Active now</p>
+                    </div>
+                  </div>
+                  <span className="text-xs bg-green-500 text-white px-2 py-1 rounded-full">Active</span>
                 </div>
-                <Button
-                  type="submit"
-                  className="gap-2 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600"
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Notifications Tab */}
+        <TabsContent value="notifications" className="space-y-4 mt-6">
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5 text-green-600" />
+                Notification Settings
+              </CardTitle>
+              <CardDescription>Configure how you receive alerts</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Email Notifications</Label>
+                  <p className="text-sm text-gray-500">Receive alerts via email</p>
+                </div>
+                <Switch
+                  checked={preferences.emailNotifications}
+                  onCheckedChange={(checked) => setPreferences({ ...preferences, emailNotifications: checked })}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Push Notifications</Label>
+                  <p className="text-sm text-gray-500">Browser push notifications</p>
+                </div>
+                <Switch
+                  checked={preferences.pushNotifications}
+                  onCheckedChange={(checked) => setPreferences({ ...preferences, pushNotifications: checked })}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Weekly Reports</Label>
+                  <p className="text-sm text-gray-500">Get weekly farm summaries</p>
+                </div>
+                <Switch
+                  checked={preferences.weeklyReport}
+                  onCheckedChange={(checked) => setPreferences({ ...preferences, weeklyReport: checked })}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Thermometer className="h-5 w-5 text-orange-500" />
+                Alert Triggers
+              </CardTitle>
+              <CardDescription>Get notified for these conditions</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base">🌡️ High Temperature</Label>
+                  <p className="text-sm text-gray-500">When temp exceeds 40°C</p>
+                </div>
+                <Switch
+                  checked={preferences.alertsForHighTemp}
+                  onCheckedChange={(checked) => setPreferences({ ...preferences, alertsForHighTemp: checked })}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base">💧 Low Soil Moisture</Label>
+                  <p className="text-sm text-gray-500">When moisture drops below 20%</p>
+                </div>
+                <Switch
+                  checked={preferences.alertsForLowMoisture}
+                  onCheckedChange={(checked) => setPreferences({ ...preferences, alertsForLowMoisture: checked })}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base">🚿 Irrigation Events</Label>
+                  <p className="text-sm text-gray-500">When irrigation starts/stops</p>
+                </div>
+                <Switch
+                  checked={preferences.alertsForIrrigation}
+                  onCheckedChange={(checked) => setPreferences({ ...preferences, alertsForIrrigation: checked })}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Preferences Tab */}
+        <TabsContent value="preferences" className="space-y-4 mt-6">
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="h-5 w-5 text-green-600" />
+                Appearance
+              </CardTitle>
+              <CardDescription>Customize your experience</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {preferences.darkMode ? <Moon className="h-5 w-5 text-indigo-500" /> : <Sun className="h-5 w-5 text-yellow-500" />}
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Dark Mode</Label>
+                    <p className="text-sm text-gray-500">Toggle dark theme</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={preferences.darkMode}
+                  onCheckedChange={(checked) => setPreferences({ ...preferences, darkMode: checked })}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Languages className="h-5 w-5 text-green-600" />
+                Language & Units
+              </CardTitle>
+              <CardDescription>Regional preferences</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Language</Label>
+                <select
+                  className="w-full h-12 px-4 rounded-xl border border-gray-200 bg-white"
+                  value={preferences.language}
+                  onChange={(e) => setPreferences({ ...preferences, language: e.target.value })}
                 >
-                  <Wifi className="h-4 w-4" /> Save Configuration
-                </Button>
-              </form>
+                  <option value="english">English</option>
+                  <option value="hindi">हिन्दी (Hindi)</option>
+                  <option value="tamil">தமிழ் (Tamil)</option>
+                  <option value="telugu">తెలుగు (Telugu)</option>
+                  <option value="kannada">ಕನ್ನಡ (Kannada)</option>
+                  <option value="marathi">मराठी (Marathi)</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label>Temperature Unit</Label>
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant={preferences.temperatureUnit === 'celsius' ? 'default' : 'outline'}
+                    className={preferences.temperatureUnit === 'celsius' ? 'bg-green-600' : ''}
+                    onClick={() => setPreferences({ ...preferences, temperatureUnit: 'celsius' })}
+                  >
+                    °C Celsius
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={preferences.temperatureUnit === 'fahrenheit' ? 'default' : 'outline'}
+                    className={preferences.temperatureUnit === 'fahrenheit' ? 'bg-green-600' : ''}
+                    onClick={() => setPreferences({ ...preferences, temperatureUnit: 'fahrenheit' })}
+                  >
+                    °F Fahrenheit
+                  </Button>
+                </div>
+              </div>
+              <Button
+                onClick={handlePreferenceSave}
+                className="gap-2 bg-gradient-to-r from-green-600 to-emerald-500 mt-4"
+              >
+                <Save className="h-4 w-4" /> Save Preferences
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>

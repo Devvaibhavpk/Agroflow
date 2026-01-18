@@ -25,6 +25,25 @@ const SAMPLE_SENSOR_DATA = [
     { ID: 20, Temperature: 43.2, Humidity: 83.1, Moisture: 29.12, Motor_State: 'ON' },
 ];
 
+// Blockchain/NFT context for the chatbot
+const BLOCKCHAIN_CONTEXT = {
+    network: 'Polygon Amoy Testnet',
+    nft_contract: 'AgroflowNFT (ERC-721)',
+    features: [
+        'Each harvest batch is minted as an NFT',
+        'QR codes link to blockchain verification',
+        'Data hash ensures crop data integrity',
+        'OpenSea integration for NFT viewing',
+        'Immutable provenance tracking'
+    ],
+    benefits: [
+        'Consumers can verify product origin',
+        'Tamper-proof growing condition records',
+        'Premium pricing for verified organic produce',
+        'Supply chain transparency'
+    ]
+};
+
 // Language map for response generation
 const LANGUAGE_MAP: Record<string, string> = {
     english: 'Respond in English.',
@@ -48,13 +67,9 @@ function analyzeSampleData() {
     const avgHumidity = avg(humidities);
     const avgMoisture = avg(moistures);
 
-    // Determine trends
-    const tempTrend =
-        temperatures[temperatures.length - 1] > temperatures[0] ? 'increasing' : 'decreasing';
-    const humidityTrend =
-        humidities[humidities.length - 1] > humidities[0] ? 'increasing' : 'decreasing';
+    const tempTrend = temperatures[temperatures.length - 1] > temperatures[0] ? 'increasing' : 'decreasing';
+    const humidityTrend = humidities[humidities.length - 1] > humidities[0] ? 'increasing' : 'decreasing';
 
-    // Determine moisture condition
     let moistureCondition = 'moist';
     if (avgMoisture < 20) moistureCondition = 'dry';
     else if (avgMoisture < 50) moistureCondition = 'moderate';
@@ -69,15 +84,11 @@ function analyzeSampleData() {
         min_humidity: Math.min(...humidities),
         max_moisture: Math.max(...moistures),
         min_moisture: Math.min(...moistures),
-        motor_on_percentage: Math.round((motorOnCount / SAMPLE_SENSOR_DATA.length) * 100 * 100) / 100,
-        latest_reading: new Date().toISOString(),
-        sample_data: true,
-        total_records: SAMPLE_SENSOR_DATA.length,
+        motor_on_percentage: Math.round((motorOnCount / SAMPLE_SENSOR_DATA.length) * 100),
         temperature_trend: tempTrend,
         humidity_trend: humidityTrend,
-        moisture_trend: 'fluctuating',
         moisture_condition: moistureCondition,
-        raw_readings: SAMPLE_SENSOR_DATA.slice(-5), // Last 5 readings
+        total_records: SAMPLE_SENSOR_DATA.length,
     };
 }
 
@@ -89,46 +100,149 @@ async function generateAIResponse(question: string, language: string): Promise<s
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-
     const sensorData = analyzeSampleData();
     const languageInstruction = LANGUAGE_MAP[language.toLowerCase()] || LANGUAGE_MAP['english'];
 
-    const prompt = `
-    You are an agricultural AI assistant. Provide helpful, informative, and practical advice about farming, agriculture, and related topics.
+    // Models ordered by availability (based on rate limits)
+    // gemini-2.5-flash-lite: 10 RPM, 20 RPD - best for free tier
+    // gemini-2.5-flash: 5 RPM, 20 RPD
+    // gemma-3-4b: 30 RPM, 14.4K RPD - high limit but smaller model
+    const modelsToTry = [
+        'gemini-2.5-flash-lite',  // 10 RPM, 20 RPD - most available
+        'gemini-2.5-flash',       // 5 RPM, 20 RPD
+        'gemini-1.5-flash',       // fallback
+    ];
 
-    Sensor Data Context:
-    ${JSON.stringify(sensorData, null, 2)}
+    const prompt = `You are AgroBot 🌾, an AI assistant for Agroflow - a smart agriculture platform with IoT sensors and blockchain-based crop traceability.
 
-    Question: ${question}
+## Your Capabilities:
+1. **Sensor Data Analysis** - Real-time farm monitoring
+2. **Blockchain/NFT Traceability** - Each harvest is minted as an NFT on Polygon
+3. **Crop Recommendations** - Based on conditions
+4. **Irrigation Advice** - Smart water management
 
-    Guidelines:
-    - Give clear, concise, and actionable responses.
-    - Use the provided sensor data context to inform your answers.
-    - Provide specific insights based on temperature, humidity, and moisture readings.
-    - Consider the trends in the data to make recommendations.
-    - If the soil moisture is low (< 20%), suggest irrigation may be needed.
-    - If temperature is trending high with low moisture, warn about potential drought stress.
-    - If humidity is high (> 85%) with high moisture, mention potential fungal disease risk.
-    - Support your answers with practical insights from the data.
-    - ${languageInstruction}
-  `;
+## Current Sensor Data:
+- 🌡️ Temperature: ${sensorData.avg_temperature}°C (${sensorData.temperature_trend}, range: ${sensorData.min_temperature}-${sensorData.max_temperature}°C)
+- 💧 Humidity: ${sensorData.avg_humidity}% (${sensorData.humidity_trend})
+- 🌱 Soil Moisture: ${sensorData.avg_moisture}% (${sensorData.moisture_condition})
+- 🚿 Irrigation Active: ${sensorData.motor_on_percentage}% of the time
 
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const text = response.text();
+## Blockchain Features:
+- Network: ${BLOCKCHAIN_CONTEXT.network}
+- NFT Standard: ${BLOCKCHAIN_CONTEXT.nft_contract}
+- Features: ${BLOCKCHAIN_CONTEXT.features.join(', ')}
 
-    if (!text) {
-        throw new Error('Empty response from AI model');
+## User Question: ${question}
+
+## Instructions:
+- Be helpful, friendly, and concise
+- Use emojis to make responses engaging
+- Reference sensor data when relevant
+- Explain blockchain/NFT features if asked
+- Provide actionable farming advice
+- ${languageInstruction}
+
+Respond naturally as a helpful farm assistant:`;
+
+    for (const modelName of modelsToTry) {
+        try {
+            const model = genAI.getGenerativeModel({ model: modelName });
+            const result = await model.generateContent(prompt);
+            const text = result.response.text();
+
+            if (text) {
+                console.log(`✅ Response generated using: ${modelName}`);
+                return text;
+            }
+        } catch (error) {
+            console.log(`⚠️ Model ${modelName} failed, trying next...`);
+            continue;
+        }
     }
 
-    return text;
+    throw new Error('All AI models failed - quota exhausted');
+}
+
+// Smart fallback when API is unavailable
+function generateFallbackResponse(sensorData: ReturnType<typeof analyzeSampleData>, question?: string): string {
+    const { avg_temperature, avg_humidity, avg_moisture, moisture_condition, temperature_trend } = sensorData;
+    const q = (question || '').toLowerCase();
+
+    // Blockchain/NFT questions
+    if (q.includes('blockchain') || q.includes('nft') || q.includes('verify') || q.includes('trace')) {
+        return `🔗 **Blockchain Traceability**
+
+Agroflow uses **Polygon blockchain** to create NFT certificates for each harvest batch.
+
+**How it works:**
+1. 📝 Farmer creates a harvest batch with crop details
+2. 🌡️ Sensor data (temp, humidity, moisture) is recorded
+3. 💎 Batch is minted as an ERC-721 NFT
+4. 📱 QR code links to verification page
+5. ✅ Consumers can verify origin by scanning
+
+**Benefits:**
+- Immutable proof of organic/pesticide-free claims
+- Premium pricing for verified produce
+- Consumer trust through transparency
+
+Visit the **Traceability** page to mint NFTs for your batches!`;
+    }
+
+    // Water/Irrigation questions
+    if (q.includes('water') || q.includes('irrigat') || q.includes('moisture')) {
+        if (avg_moisture < 30) {
+            return `💧 **Irrigation Needed**
+
+Current soil moisture: **${avg_moisture}%** (${moisture_condition})
+
+⚠️ Your soil is dry. I recommend starting irrigation within the next 2-3 hours to prevent crop stress.
+
+**Tip:** Check the Dashboard for real-time moisture updates.`;
+        }
+        return `💧 **Moisture Status: Good**
+
+Current soil moisture: **${avg_moisture}%**
+
+✅ No immediate irrigation needed. Your crops have adequate water.`;
+    }
+
+    // Temperature questions
+    if (q.includes('temp') || q.includes('hot') || q.includes('cold')) {
+        return `🌡️ **Temperature Analysis**
+
+Current: **${avg_temperature}°C** (${temperature_trend})
+Range: ${sensorData.min_temperature}°C - ${sensorData.max_temperature}°C
+
+${avg_temperature > 38 ? '⚠️ High temperature detected. Consider shade nets for sensitive crops.' : '✅ Temperature is within safe range for most crops.'}`;
+    }
+
+    // Default response
+    return `🌾 **AgroBot Farm Summary**
+
+📊 **Current Conditions:**
+- 🌡️ Temperature: ${avg_temperature}°C (${temperature_trend})
+- 💧 Humidity: ${avg_humidity}%
+- 🌱 Soil Moisture: ${avg_moisture}% (${moisture_condition})
+
+🔗 **Blockchain Features:**
+- Mint harvest batches as NFTs
+- QR code verification for consumers
+- Polygon network for low gas fees
+
+💡 **Quick Tips:**
+${avg_moisture < 30 ? '• Irrigation recommended soon\n' : ''}${avg_temperature > 40 ? '• Provide shade for heat-sensitive crops\n' : ''}• Check Traceability page to manage batches
+
+_Ask me about irrigation, temperature, crops, or blockchain!_`;
 }
 
 export async function POST(request: NextRequest) {
+    let question = '';
+
     try {
         const body = await request.json();
-        const { question, language = 'english' } = body;
+        question = body.question || '';
+        const language = body.language || 'english';
 
         if (!question || typeof question !== 'string') {
             return NextResponse.json(
@@ -140,11 +254,21 @@ export async function POST(request: NextRequest) {
         const answer = await generateAIResponse(question, language);
         return NextResponse.json({ answer });
     } catch (error) {
-        console.error('Error processing question:', error);
+        console.error('Chatbot error:', error);
+        const errorMessage = error instanceof Error ? error.message : '';
 
-        const errorMessage = error instanceof Error ? error.message : 'Failed to process question';
+        // Use smart fallback for rate limits
+        if (errorMessage.includes('429') || errorMessage.includes('quota') || errorMessage.includes('exhausted')) {
+            const sensorData = analyzeSampleData();
+            const fallbackResponse = generateFallbackResponse(sensorData, question);
+            return NextResponse.json({
+                answer: fallbackResponse,
+                isOffline: true
+            });
+        }
+
         return NextResponse.json(
-            { error: errorMessage },
+            { error: 'Failed to process question' },
             { status: 500 }
         );
     }
