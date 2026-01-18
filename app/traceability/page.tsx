@@ -33,6 +33,33 @@ import {
 import axios from 'axios';
 import QRCode from 'qrcode';
 import WalletConnect from '@/components/WalletConnect';
+import { mintBatchNFT, isMetaMaskInstalled, connectWallet } from '@/lib/wallet';
+import { useAuth } from '@/lib/auth';
+
+// Browser-compatible hash function for batch data
+async function hashBatchData(batch: {
+    id: string;
+    cropName: string;
+    cropVariety?: string;
+    plantingDate: string;
+    harvestDate?: string;
+    quantityKg?: number;
+    zoneName?: string;
+    farmLocation?: string;
+    avgTemperature?: number;
+    avgHumidity?: number;
+    avgMoisture?: number;
+    isOrganic: boolean;
+    isPesticideFree: boolean;
+    qualityGrade?: string;
+}): Promise<string> {
+    const dataString = JSON.stringify(batch);
+    const encoder = new TextEncoder();
+    const data = encoder.encode(dataString);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 interface HarvestBatch {
     id: string;
@@ -82,68 +109,94 @@ const statusIcons: Record<string, typeof Sprout> = {
 };
 
 // Demo data for when database is not available
-const DEMO_BATCHES: HarvestBatch[] = [
-    {
-        id: 'demo-1',
-        qr_code_id: 'AF-DEMO01',
-        crop_name: 'Organic Tomatoes',
-        crop_variety: 'Roma',
-        planting_date: '2024-10-15',
-        harvest_date: '2024-12-20',
-        quantity_kg: 250,
-        zone_name: 'Zone A',
-        farm_location: 'Bangalore, Karnataka',
-        avg_temperature: 27.5,
-        avg_humidity: 62,
-        avg_moisture: 45,
-        is_organic: true,
-        is_pesticide_free: true,
-        quality_grade: 'Premium',
-        certifications: ['Organic', 'Pesticide-Free'],
-        status: 'verified',
-        blockchain_tx_hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-        blockchain_block_number: 50123456,
-        blockchain_verified_at: '2024-12-21T10:30:00Z',
-        blockchain_network: 'polygon-amoy',
-        data_hash: 'abc123def456',
-        created_at: '2024-10-15T08:00:00Z'
-    },
-    {
-        id: 'demo-2',
-        qr_code_id: 'AF-DEMO02',
-        crop_name: 'Green Spinach',
-        crop_variety: 'Baby Leaf',
-        planting_date: '2024-11-01',
-        harvest_date: '2024-12-15',
-        quantity_kg: 80,
-        zone_name: 'Zone B',
-        farm_location: 'Bangalore, Karnataka',
-        avg_temperature: 24.2,
-        avg_humidity: 68,
-        avg_moisture: 52,
-        is_organic: true,
-        is_pesticide_free: true,
-        quality_grade: 'A',
-        status: 'harvested',
-        created_at: '2024-11-01T08:00:00Z'
-    },
-    {
-        id: 'demo-3',
-        qr_code_id: 'AF-DEMO03',
-        crop_name: 'Red Chili',
-        crop_variety: 'Guntur',
-        planting_date: '2024-12-01',
-        quantity_kg: 0,
-        zone_name: 'Zone C',
-        farm_location: 'Bangalore, Karnataka',
-        is_organic: false,
-        is_pesticide_free: false,
-        status: 'growing',
-        created_at: '2024-12-01T08:00:00Z'
-    }
-];
+const getDemoBatches = (): HarvestBatch[] => {
+    const today = new Date();
+    const daysAgo = (days: number) => {
+        const d = new Date(today);
+        d.setDate(d.getDate() - days);
+        return d.toISOString(); // Full ISO string for demo
+    };
+    const deployedContract = "0x8e205B621E7D122C8B1FD2695080A5Ea31280709"; // Actual deployed address
+
+    return [
+        {
+            id: 'demo-1',
+            qr_code_id: 'AF-DEMO01',
+            crop_name: 'Organic Tomatoes',
+            crop_variety: 'Roma',
+            planting_date: daysAgo(90),
+            harvest_date: daysAgo(10),
+            quantity_kg: 250,
+            zone_name: 'Zone A',
+            farm_location: 'Chennai, Tamil Nadu',
+            avg_temperature: 27.5,
+            avg_humidity: 62,
+            avg_moisture: 45,
+            is_organic: true,
+            is_pesticide_free: true,
+            quality_grade: 'Premium',
+            certifications: ['Organic', 'Pesticide-Free'],
+            status: 'verified',
+            blockchain_tx_hash: '0xc791b68e0d4f3a2b1c5e9d8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b',
+            blockchain_block_number: 50042317,
+            blockchain_verified_at: daysAgo(5),
+            blockchain_network: 'polygon-amoy',
+            data_hash: 'abc123def456',
+            created_at: daysAgo(90)
+        },
+        {
+            id: 'demo-2',
+            qr_code_id: 'AF-DEMO02',
+            crop_name: 'Green Spinach',
+            crop_variety: 'Baby Leaf',
+            planting_date: daysAgo(60),
+            harvest_date: daysAgo(15),
+            quantity_kg: 80,
+            zone_name: 'Zone B',
+            farm_location: 'Chennai, Tamil Nadu',
+            avg_temperature: 24.2,
+            avg_humidity: 68,
+            avg_moisture: 52,
+            is_organic: true,
+            is_pesticide_free: true,
+            quality_grade: 'A',
+            status: 'minted',
+            blockchain_tx_hash: '0x8b90134e7f3c2d1a5b6e9d8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b',
+            blockchain_block_number: 50045123,
+            blockchain_verified_at: daysAgo(10),
+            blockchain_network: 'polygon-amoy',
+            nft_token_id: 6338,
+            nft_contract_address: deployedContract,
+            nft_minted_at: daysAgo(10),
+            nft_opensea_url: `https://testnets.opensea.io/assets/amoy/${deployedContract}/6338`,
+            created_at: daysAgo(60)
+        },
+        {
+            id: 'demo-3',
+            qr_code_id: 'AF-DEMO03',
+            crop_name: 'Red Chili',
+            crop_variety: 'Guntur',
+            planting_date: daysAgo(30),
+            quantity_kg: 0,
+            zone_name: 'Zone C',
+            farm_location: 'Chennai, Tamil Nadu',
+            avg_temperature: 29.1,
+            avg_humidity: 55,
+            avg_moisture: 40,
+            is_organic: false,
+            is_pesticide_free: false,
+            status: 'growing',
+            created_at: daysAgo(30)
+        }
+    ];
+};
+
+const DEMO_BATCHES = getDemoBatches();
 
 export default function TraceabilityPage() {
+    // Auth check - requires login
+    const { user, loading: authLoading } = useAuth(true);
+
     const [batches, setBatches] = useState<HarvestBatch[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('all');
@@ -154,13 +207,15 @@ export default function TraceabilityPage() {
     const [copied, setCopied] = useState(false);
     const [showCreateForm, setShowCreateForm] = useState(false);
 
-    // Form state
+    // Form state - with today's date as default
+    const getTodayDate = () => new Date().toISOString().split('T')[0];
+
     const [formData, setFormData] = useState({
         cropName: '',
         cropVariety: '',
-        plantingDate: '',
+        plantingDate: getTodayDate(),
         zoneName: '',
-        farmLocation: 'Bangalore, Karnataka',
+        farmLocation: 'Chennai, Tamil Nadu',
         isOrganic: false,
         isPesticideFree: false,
     });
@@ -168,8 +223,27 @@ export default function TraceabilityPage() {
 
     // Fetch batches
     useEffect(() => {
-        fetchBatches();
-    }, []);
+        if (user) {
+            fetchBatches();
+        }
+    }, [user]);
+
+    // Show loading while checking auth
+    if (authLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-emerald-50">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4" />
+                    <p className="text-gray-500">Checking authentication...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // If not authenticated, useAuth will redirect to login
+    if (!user) {
+        return null;
+    }
 
     const fetchBatches = async () => {
         try {
@@ -217,15 +291,19 @@ export default function TraceabilityPage() {
             }
         } catch (error) {
             console.error('Verification failed:', error);
-            // Demo: simulate verification
+            // Demo: simulate verification with consistent data (not random)
+            // This hash is for demo purposes only - real on-chain data comes from NFT minting
+            const contractAddress = process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS || '0x8e205B621E7D122C8B1FD2695080A5Ea31280709';
             setBatches(prev => prev.map(b =>
                 b.id === batchId ? {
                     ...b,
                     status: 'verified' as const,
-                    blockchain_tx_hash: '0x' + Math.random().toString(16).slice(2) + Math.random().toString(16).slice(2),
-                    blockchain_block_number: 50000000 + Math.floor(Math.random() * 1000000),
+                    // Use simulated but consistent data for demo
+                    blockchain_tx_hash: '0x' + 'demo'.repeat(16), // Clearly fake for demo
+                    blockchain_block_number: 50000000,
                     blockchain_verified_at: new Date().toISOString(),
                     blockchain_network: 'polygon-amoy',
+                    nft_contract_address: contractAddress,
                 } : b
             ));
         } finally {
@@ -233,51 +311,112 @@ export default function TraceabilityPage() {
         }
     };
 
-    // Mint batch as NFT
+    // Mint batch as NFT using real MetaMask
     const mintAsNFT = async (batchId: string) => {
         setMinting(true);
+
+        // Get the batch to mint
+        const batch = batches.find(b => b.id === batchId);
+        if (!batch) {
+            setMinting(false);
+            return;
+        }
+
         try {
-            const response = await axios.put('/api/harvest', {
-                id: batchId,
-                mintNft: true,
-            });
+            // Check if MetaMask is installed
+            if (!isMetaMaskInstalled()) {
+                alert('Please install MetaMask to mint NFTs on the blockchain!');
+                setMinting(false);
+                return;
+            }
 
-            // Update local state
-            setBatches(prev => prev.map(b =>
-                b.id === batchId ? response.data.batch : b
-            ));
+            // Connect wallet if needed
+            await connectWallet();
 
-            if (selectedBatch?.id === batchId) {
-                setSelectedBatch(response.data.batch);
+            // Get contract address
+            const contractAddress = process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS || '0x8e205B621E7D122C8B1FD2695080A5Ea31280709';
+
+            // Prepare batch data for hashing
+            const batchData = {
+                id: batch.id,
+                cropName: batch.crop_name,
+                cropVariety: batch.crop_variety,
+                plantingDate: batch.planting_date,
+                harvestDate: batch.harvest_date,
+                quantityKg: batch.quantity_kg,
+                zoneName: batch.zone_name,
+                farmLocation: batch.farm_location,
+                avgTemperature: batch.avg_temperature,
+                avgHumidity: batch.avg_humidity,
+                avgMoisture: batch.avg_moisture,
+                isOrganic: batch.is_organic,
+                isPesticideFree: batch.is_pesticide_free,
+                qualityGrade: batch.quality_grade,
+            };
+
+            // Generate data hash
+            const dataHash = await hashBatchData(batchData);
+
+            // Generate metadata URI
+            const baseUrl = window.location.origin;
+            const metadataUri = `${baseUrl}/api/nft-metadata/${batch.qr_code_id}`;
+
+            // REAL BLOCKCHAIN MINTING via MetaMask
+            const result = await mintBatchNFT(
+                contractAddress,
+                batch.qr_code_id,
+                dataHash,
+                metadataUri
+            );
+
+            if (result.success) {
+                // Update database with real blockchain data
+                console.log('💾 Saving to database:', {
+                    batchId,
+                    txHash: result.txHash,
+                    blockNumber: result.blockNumber,
+                    tokenId: result.tokenId
+                });
+
+                await axios.put('/api/harvest', {
+                    id: batchId,
+                    status: 'minted',
+                    blockchain_tx_hash: result.txHash,
+                    blockchain_block_number: result.blockNumber,
+                    nft_token_id: result.tokenId,
+                    nft_contract_address: contractAddress,
+                    nft_opensea_url: `https://amoy.polygonscan.com/nft/${contractAddress}/${result.tokenId}`,
+                });
+
+                // Update local state with real data
+                const updatedBatch = {
+                    ...batch,
+                    status: 'minted' as const,
+                    blockchain_tx_hash: result.txHash,
+                    blockchain_block_number: result.blockNumber,
+                    blockchain_verified_at: new Date().toISOString(),
+                    blockchain_network: 'polygon-amoy',
+                    nft_token_id: result.tokenId,
+                    nft_contract_address: contractAddress,
+                    nft_opensea_url: `https://amoy.polygonscan.com/nft/${contractAddress}/${result.tokenId}`,
+                    nft_minted_at: new Date().toISOString(),
+                };
+
+                setBatches(prev => prev.map(b =>
+                    b.id === batchId ? updatedBatch : b
+                ));
+
+                setSelectedBatch(updatedBatch);
+
+                console.log('✅ Updated batch with real tx hash:', result.txHash);
+
+                alert(`NFT Minted Successfully!\nToken ID: #${result.tokenId}\nTx Hash: ${result.txHash}\n\nView on PolygonScan:\nhttps://amoy.polygonscan.com/tx/${result.txHash}`);
+            } else {
+                throw new Error(result.error || 'Minting failed');
             }
         } catch (error) {
             console.error('Minting failed:', error);
-            // Demo: simulate minting
-            const tokenId = Math.floor(Math.random() * 10000) + 1;
-            const contractAddress = '0x' + Math.random().toString(16).slice(2, 42);
-            setBatches(prev => prev.map(b =>
-                b.id === batchId ? {
-                    ...b,
-                    status: 'minted' as const,
-                    blockchain_tx_hash: '0x' + Math.random().toString(16).slice(2) + Math.random().toString(16).slice(2),
-                    blockchain_block_number: 50000000 + Math.floor(Math.random() * 1000000),
-                    blockchain_verified_at: new Date().toISOString(),
-                    blockchain_network: 'polygon-amoy',
-                    nft_token_id: tokenId,
-                    nft_contract_address: contractAddress,
-                    nft_opensea_url: `https://testnets.opensea.io/assets/amoy/${contractAddress}/${tokenId}`,
-                    nft_minted_at: new Date().toISOString(),
-                } : b
-            ));
-            if (selectedBatch?.id === batchId) {
-                setSelectedBatch(prev => prev ? {
-                    ...prev,
-                    status: 'minted' as const,
-                    nft_token_id: tokenId,
-                    nft_contract_address: contractAddress,
-                    nft_opensea_url: `https://testnets.opensea.io/assets/amoy/${contractAddress}/${tokenId}`,
-                } : null);
-            }
+            alert(`Minting failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
         } finally {
             setMinting(false);
         }
@@ -297,7 +436,7 @@ export default function TraceabilityPage() {
                 cropVariety: '',
                 plantingDate: '',
                 zoneName: '',
-                farmLocation: 'Bangalore, Karnataka',
+                farmLocation: 'Chennai, Tamil Nadu',
                 isOrganic: false,
                 isPesticideFree: false,
             });
@@ -600,7 +739,7 @@ export default function TraceabilityPage() {
                                                 Verify
                                             </Button>
                                         )}
-                                        {selectedBatch.blockchain_tx_hash && !selectedBatch.nft_token_id && (
+                                        {selectedBatch.blockchain_tx_hash && selectedBatch.status !== 'minted' && (!selectedBatch.nft_token_id || selectedBatch.nft_token_id === 0) && (
                                             <Button
                                                 size="sm"
                                                 onClick={() => mintAsNFT(selectedBatch.id)}
@@ -615,7 +754,7 @@ export default function TraceabilityPage() {
                                                 Mint NFT
                                             </Button>
                                         )}
-                                        {selectedBatch.nft_token_id && (
+                                        {selectedBatch.nft_token_id && selectedBatch.nft_token_id > 0 && (
                                             <Badge className="bg-purple-100 text-purple-700 gap-1">
                                                 <Gem className="w-3 h-3" />
                                                 NFT #{selectedBatch.nft_token_id}
@@ -685,34 +824,46 @@ export default function TraceabilityPage() {
                                             <div className="flex items-center gap-2 text-blue-600 mb-2">
                                                 <ShieldCheck className="w-5 h-5" />
                                                 <span className="font-medium">Blockchain Verified</span>
+                                                {selectedBatch.status !== 'minted' && (
+                                                    <Badge variant="outline" className="text-xs text-gray-400 border-gray-300">Demo</Badge>
+                                                )}
                                             </div>
                                             <div className="bg-blue-50 p-3 rounded-lg text-xs space-y-2">
                                                 <div className="flex justify-between">
                                                     <span className="text-gray-500">Network</span>
                                                     <span className="font-medium">Polygon Amoy</span>
                                                 </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-500">Block</span>
-                                                    <span className="font-mono">{selectedBatch.blockchain_block_number}</span>
-                                                </div>
+                                                {selectedBatch.blockchain_block_number && selectedBatch.blockchain_block_number !== 50000000 && (
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-500">Block</span>
+                                                        <span className="font-mono">{selectedBatch.blockchain_block_number}</span>
+                                                    </div>
+                                                )}
                                                 <div className="flex justify-between items-center">
                                                     <span className="text-gray-500">Tx Hash</span>
-                                                    <a
-                                                        href={`https://amoy.polygonscan.com/tx/${selectedBatch.blockchain_tx_hash}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="font-mono text-blue-600 hover:underline flex items-center gap-1"
-                                                    >
-                                                        {selectedBatch.blockchain_tx_hash?.slice(0, 8)}...
-                                                        <ExternalLink className="w-3 h-3" />
-                                                    </a>
+                                                    {/* Only show clickable link for minted batches (real tx) */}
+                                                    {selectedBatch.status === 'minted' && selectedBatch.blockchain_tx_hash && !selectedBatch.blockchain_tx_hash.includes('demo') ? (
+                                                        <a
+                                                            href={`https://amoy.polygonscan.com/tx/${selectedBatch.blockchain_tx_hash}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="font-mono text-blue-600 hover:underline flex items-center gap-1"
+                                                        >
+                                                            {selectedBatch.blockchain_tx_hash?.slice(0, 10)}...
+                                                            <ExternalLink className="w-3 h-3" />
+                                                        </a>
+                                                    ) : (
+                                                        <span className="font-mono text-gray-400">
+                                                            {selectedBatch.status === 'minted' ? selectedBatch.blockchain_tx_hash?.slice(0, 10) + '...' : 'Mint to get real Tx'}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
                                     )}
 
                                     {/* NFT Certificate */}
-                                    {selectedBatch.nft_token_id && (
+                                    {(selectedBatch.nft_token_id || selectedBatch.status === 'minted') && (
                                         <div className="pt-3 border-t">
                                             <div className="flex items-center gap-2 text-purple-600 mb-2">
                                                 <Gem className="w-5 h-5" />
@@ -721,25 +872,24 @@ export default function TraceabilityPage() {
                                             <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-3 rounded-lg text-xs space-y-2">
                                                 <div className="flex justify-between">
                                                     <span className="text-gray-500">Token ID</span>
-                                                    <span className="font-bold text-purple-700">#{selectedBatch.nft_token_id}</span>
+                                                    <span className="font-bold text-purple-700">#{selectedBatch.nft_token_id || 1}</span>
                                                 </div>
                                                 <div className="flex justify-between items-center">
                                                     <span className="text-gray-500">Contract</span>
                                                     <span className="font-mono text-xs">
-                                                        {selectedBatch.nft_contract_address?.slice(0, 8)}...{selectedBatch.nft_contract_address?.slice(-4)}
+                                                        {(selectedBatch.nft_contract_address || '0x8e205B621E7D122C8B1FD2695080A5Ea31280709').slice(0, 8)}...{(selectedBatch.nft_contract_address || '0x8e205B621E7D122C8B1FD2695080A5Ea31280709').slice(-4)}
                                                     </span>
                                                 </div>
-                                                {selectedBatch.nft_opensea_url && (
-                                                    <a
-                                                        href={selectedBatch.nft_opensea_url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="flex items-center justify-center gap-2 w-full mt-2 p-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors"
-                                                    >
-                                                        <ExternalLink className="w-3 h-3" />
-                                                        View on OpenSea
-                                                    </a>
-                                                )}
+                                                {/* View on PolygonScan (OpenSea doesn't support testnets) */}
+                                                <a
+                                                    href={`https://amoy.polygonscan.com/nft/${selectedBatch.nft_contract_address || '0x8e205B621E7D122C8B1FD2695080A5Ea31280709'}/${selectedBatch.nft_token_id || 1}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center justify-center gap-2 w-full mt-2 p-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors"
+                                                >
+                                                    <ExternalLink className="w-3 h-3" />
+                                                    View on PolygonScan
+                                                </a>
                                             </div>
                                         </div>
                                     )}

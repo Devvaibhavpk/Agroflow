@@ -170,33 +170,100 @@ export async function mintBatchNFT(
         const contract = getContract(contractAddress, signer);
 
         // Convert data hash to bytes32
-        const hashBytes = ethers.zeroPadValue(ethers.toBeHex(dataHash.startsWith('0x') ? dataHash : '0x' + dataHash), 32);
+        // The hash is already a 64-char hex string from SHA-256, just ensure proper format
+        let hashHex = dataHash.startsWith('0x') ? dataHash : '0x' + dataHash;
+        // Ensure it's exactly 66 chars (0x + 64 hex chars = 32 bytes)
+        if (hashHex.length < 66) {
+            hashHex = '0x' + hashHex.slice(2).padStart(64, '0');
+        } else if (hashHex.length > 66) {
+            hashHex = '0x' + hashHex.slice(2, 66);
+        }
+        const hashBytes = hashHex;
 
-        // Mint the NFT
+        // Debug logging
+        console.log('🚀 Minting NFT with params:', {
+            to: await signer.getAddress(),
+            qrCodeId,
+            hashBytes,
+            metadataUri,
+            contractAddress
+        });
+
+        // Check if QR code already minted
+        try {
+            const existingTokenId = await contract.getTokenByQrCode(qrCodeId);
+            if (existingTokenId && Number(existingTokenId) > 0) {
+                return {
+                    success: false,
+                    error: `This QR code (${qrCodeId}) was already minted as NFT #${existingTokenId}`
+                };
+            }
+        } catch {
+            // Function may revert if not found, which is fine
+        }
+
+        // Check balance before minting
+        const balance = await provider.getBalance(await signer.getAddress());
+        const balanceInMatic = Number(ethers.formatEther(balance));
+        console.log('💰 Wallet balance:', balanceInMatic, 'MATIC');
+
+        if (balanceInMatic < 0.005) {
+            return {
+                success: false,
+                error: `Insufficient MATIC (${balanceInMatic.toFixed(4)} MATIC). Need at least 0.005 MATIC. Get more from faucet.polygon.technology`
+            };
+        }
+
+        // Get current gas price and add buffer
+        const feeData = await provider.getFeeData();
+        const gasPrice = feeData.gasPrice ? feeData.gasPrice * BigInt(2) : ethers.parseUnits('30', 'gwei');
+        console.log('⛽ Gas price:', ethers.formatUnits(gasPrice, 'gwei'), 'Gwei');
+
+        // Mint the NFT with explicit gas settings to avoid estimation issues
+        console.log('📝 Sending mint transaction...');
         const tx = await contract.mintBatch(
             await signer.getAddress(),
             qrCodeId,
             hashBytes,
-            metadataUri
+            metadataUri,
+            {
+                gasLimit: 300000, // Explicit gas limit
+                gasPrice: gasPrice, // Explicit gas price
+            }
         );
 
         // Wait for confirmation
+        console.log('⏳ Waiting for transaction confirmation...');
         const receipt = await tx.wait();
+        console.log('✅ Transaction confirmed!', receipt.hash);
 
         // Parse the BatchMinted event to get tokenId
-        const mintEvent = receipt.logs.find((log: ethers.Log) => {
+        let tokenId = 0;
+
+        // Try to get tokenId from event logs
+        for (const log of receipt.logs) {
             try {
                 const parsed = contract.interface.parseLog({ topics: log.topics as string[], data: log.data });
-                return parsed?.name === 'BatchMinted';
+                if (parsed?.name === 'BatchMinted') {
+                    tokenId = Number(parsed.args[0]);
+                    console.log('📦 Token ID from event:', tokenId);
+                    break;
+                }
             } catch {
-                return false;
+                // Not our event, continue
             }
-        });
+        }
 
-        let tokenId = 0;
-        if (mintEvent) {
-            const parsed = contract.interface.parseLog({ topics: mintEvent.topics as string[], data: mintEvent.data });
-            tokenId = Number(parsed?.args[0]);
+        // Fallback: get totalSupply as tokenId (latest minted)
+        if (tokenId === 0) {
+            try {
+                const total = await contract.totalSupply();
+                tokenId = Number(total);
+                console.log('📦 Token ID from totalSupply:', tokenId);
+            } catch (e) {
+                console.warn('Could not get totalSupply:', e);
+                tokenId = 1; // Default fallback
+            }
         }
 
         return {
@@ -207,9 +274,33 @@ export async function mintBatchNFT(
         };
     } catch (error) {
         console.error('Mint failed:', error);
+
+        // Parse common error messages
+        let errorMessage = 'Minting failed';
+        if (error instanceof Error) {
+            const msg = error.message.toLowerCase();
+            if (msg.includes('qr code already minted') || msg.includes('already minted')) {
+                errorMessage = 'This batch has already been minted as an NFT';
+            } else if (msg.includes('insufficient funds')) {
+                errorMessage = 'Insufficient MATIC for gas. Get test MATIC from faucet.polygon.technology';
+            } else if (msg.includes('user rejected') || msg.includes('denied')) {
+                errorMessage = 'Transaction rejected by user';
+            } else if (msg.includes('internal json-rpc error') || msg.includes('execution reverted')) {
+                // Try to extract revert reason
+                const revertMatch = error.message.match(/reason="([^"]+)"/);
+                if (revertMatch) {
+                    errorMessage = revertMatch[1];
+                } else {
+                    errorMessage = 'Transaction failed. This QR code may already be minted, or there may be a network issue. Try again.';
+                }
+            } else {
+                errorMessage = error.message;
+            }
+        }
+
         return {
             success: false,
-            error: error instanceof Error ? error.message : 'Minting failed'
+            error: errorMessage
         };
     }
 }

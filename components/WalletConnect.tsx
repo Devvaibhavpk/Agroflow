@@ -51,6 +51,38 @@ export default function WalletConnect({ onConnect, onDisconnect }: WalletConnect
         }
     }, [wallet.chainId]);
 
+    // Check for existing connection on mount
+    useEffect(() => {
+        const checkExistingConnection = async () => {
+            if (!isMetaMaskInstalled()) return;
+
+            try {
+                // Get accounts without prompting (check if already connected)
+                const accounts = await window.ethereum.request({
+                    method: 'eth_accounts'
+                }) as string[];
+
+                if (accounts && accounts.length > 0) {
+                    // Wallet is already connected, restore state
+                    const chainId = await window.ethereum.request({
+                        method: 'eth_chainId'
+                    }) as string;
+
+                    setWallet({
+                        isConnected: true,
+                        address: accounts[0],
+                        chainId: chainId,
+                        balance: null // Can fetch balance if needed
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to check existing connection:', error);
+            }
+        };
+
+        checkExistingConnection();
+    }, []);
+
     // Setup wallet listeners
     useEffect(() => {
         const cleanup = setupWalletListeners(

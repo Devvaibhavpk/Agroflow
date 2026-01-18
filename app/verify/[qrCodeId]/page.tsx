@@ -86,7 +86,7 @@ export default function VerifyPage({ params }: { params: Promise<{ qrCodeId: str
                     harvestDate: '2024-12-20',
                     quantityKg: 250,
                     zoneName: 'Zone A',
-                    farmLocation: 'Bangalore, Karnataka',
+                    farmLocation: 'Chennai, Tamil Nadu',
                     avgTemperature: 27.5,
                     avgHumidity: 62,
                     avgMoisture: 45,

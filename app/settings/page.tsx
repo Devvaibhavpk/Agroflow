@@ -43,7 +43,7 @@ export default function SettingsPage() {
 
   const [preferences, setPreferences] = useState({
     farmName: 'My Farm',
-    location: 'Bangalore, Karnataka',
+    location: 'Chennai, Tamil Nadu',
     temperatureUnit: 'celsius',
     language: 'english',
     darkMode: false,

@@ -134,7 +134,8 @@ export function generateNFTMetadata(
 
 /**
  * Simulate NFT minting (for demo/hackathon)
- * In production, this would use ethers.js to mint on Polygon
+ * Uses the actual deployed contract address for consistency
+ * Actual on-chain minting requires MetaMask via frontend wallet.ts
  */
 export async function simulateNFTMint(
     batch: HarvestBatchData,
@@ -144,13 +145,15 @@ export async function simulateNFTMint(
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Generate mock data
-    const tokenId = Math.floor(Math.random() * 10000) + 1;
-    const txHash = '0x' + crypto.randomBytes(32).toString('hex');
-    const blockNumber = 50000000 + Math.floor(Math.random() * 1000000);
+    // Use actual deployed contract address
+    const contractAddress = process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS || '0x8e205B621E7D122C8B1FD2695080A5Ea31280709';
 
-    // In production, this would be the actual contract address
-    const contractAddress = '0x' + crypto.randomBytes(20).toString('hex');
+    // Generate token ID based on batch data for consistency
+    const tokenId = Math.abs(hashCode(batch.id + qrCodeId)) % 10000 + 1;
+
+    // Generate realistic-looking tx hash
+    const txHash = '0x' + crypto.createHash('sha256').update(batch.id + qrCodeId + Date.now()).digest('hex');
+    const blockNumber = 50000000 + Math.floor(Date.now() / 1000) % 1000000;
 
     return {
         tokenId,
@@ -162,6 +165,17 @@ export async function simulateNFTMint(
         openSeaUrl: `https://testnets.opensea.io/assets/amoy/${contractAddress}/${tokenId}`,
         timestamp: new Date().toISOString(),
     };
+}
+
+// Helper function to generate consistent hash code
+function hashCode(str: string): number {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return hash;
 }
 
 /**

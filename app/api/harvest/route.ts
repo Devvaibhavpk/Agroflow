@@ -261,7 +261,24 @@ export async function PUT(request: NextRequest) {
         if (updateData.qualityGrade) updatePayload.quality_grade = updateData.qualityGrade;
         if (updateData.status) updatePayload.status = updateData.status;
         if (updateData.notes) updatePayload.notes = updateData.notes;
+
+        // Blockchain fields (sent directly from frontend after MetaMask minting)
+        if (updateData.blockchain_tx_hash) updatePayload.blockchain_tx_hash = updateData.blockchain_tx_hash;
+        if (updateData.blockchain_block_number) updatePayload.blockchain_block_number = updateData.blockchain_block_number;
+        if (updateData.blockchain_verified_at) updatePayload.blockchain_verified_at = updateData.blockchain_verified_at;
+        if (updateData.blockchain_network) updatePayload.blockchain_network = updateData.blockchain_network;
+        if (updateData.data_hash) updatePayload.data_hash = updateData.data_hash;
+
+        // NFT fields
+        if (updateData.nft_token_id) updatePayload.nft_token_id = updateData.nft_token_id;
+        if (updateData.nft_contract_address) updatePayload.nft_contract_address = updateData.nft_contract_address;
+        if (updateData.nft_metadata_uri) updatePayload.nft_metadata_uri = updateData.nft_metadata_uri;
+        if (updateData.nft_opensea_url) updatePayload.nft_opensea_url = updateData.nft_opensea_url;
+        if (updateData.nft_minted_at) updatePayload.nft_minted_at = updateData.nft_minted_at;
+
         updatePayload.updated_at = new Date().toISOString();
+
+        console.log('🔄 Updating batch with payload:', JSON.stringify(updatePayload, null, 2));
 
         const { data, error } = await supabase
             .from('harvest_batches')
@@ -270,7 +287,12 @@ export async function PUT(request: NextRequest) {
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('❌ Database update error:', error);
+            throw error;
+        }
+
+        console.log('✅ Database updated successfully. New data:', JSON.stringify(data, null, 2));
 
         return NextResponse.json({ batch: data });
     } catch (error) {

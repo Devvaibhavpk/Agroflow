@@ -66,7 +66,7 @@ const DEMO_SENSOR_DATA: SensorData[] = Array.from({ length: 24 }, (_, i) => ({
 }));
 
 const DEMO_WEATHER: WeatherData = {
-  location: { name: 'Bangalore' },
+  location: { name: 'Chennai' },
   current: {
     temp_c: 28,
     humidity: 65,

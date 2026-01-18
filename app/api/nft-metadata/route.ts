@@ -27,13 +27,13 @@ export async function GET(request: NextRequest) {
     if (!supabase) {
         const demoMetadata = {
             name: `Organic Tomatoes - Batch ${qrCodeId}`,
-            description: `Blockchain-verified harvest batch of Organic Tomatoes (Roma) from Bangalore, Karnataka. This NFT certifies the authenticity and complete growing history of this produce batch.`,
+            description: `Blockchain-verified harvest batch of Organic Tomatoes (Roma) from Chennai, Tamil Nadu. This NFT certifies the authenticity and complete growing history of this produce batch.`,
             image: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/nft-image/${qrCodeId}`,
             external_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/verify/${qrCodeId}`,
             attributes: [
                 { trait_type: 'Crop', value: 'Tomatoes' },
                 { trait_type: 'Variety', value: 'Roma' },
-                { trait_type: 'Farm Location', value: 'Bangalore, Karnataka' },
+                { trait_type: 'Farm Location', value: 'Chennai, Tamil Nadu' },
                 { trait_type: 'Organic', value: 'Yes' },
                 { trait_type: 'Pesticide-Free', value: 'Yes' },
                 { trait_type: 'Quality Grade', value: 'Premium' },
