@@ -374,7 +374,7 @@ export default function LandingPage() {
             { value: "24/7", label: "Real-Time Data", sublabel: "Always connected" },
             { value: "100%", label: "Tamper-Proof", sublabel: "Blockchain verified" },
             { value: "30%", label: "Yield Increase", sublabel: "Reported by farmers" }
-          ].map((stat, index) => (
+          ].map((stat) => (
             <motion.div
               key={stat.label}
               whileHover={{ scale: 1.05 }}

@@ -16,8 +16,6 @@ import {
     Link2,
     Rocket,
     Server,
-    Shield,
-    Smartphone,
     Wifi,
     ExternalLink,
     Github,

@@ -14,7 +14,7 @@ import { Loader2, Mail, Lock, Eye, EyeOff, User, Sprout } from "lucide-react";
 import Image from "next/image";
 
 export default function SignUpPage() {
-    const { signUpWithEmail, signInWithGoogle, isLoading } = useAuth();
+    const { signUpWithEmail, isLoading } = useAuth();
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -48,14 +48,6 @@ export default function SignUpPage() {
         } else {
             setSuccess(true);
             setLoading(false);
-        }
-    };
-
-    const handleGoogleSignUp = async () => {
-        setError(null);
-        const { error } = await signInWithGoogle();
-        if (error) {
-            setError(error.message);
         }
     };
 

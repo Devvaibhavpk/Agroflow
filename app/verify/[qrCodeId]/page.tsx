@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState, useEffect, use } from 'react';
@@ -10,7 +9,6 @@ import {
     ShieldCheck,
     ShieldX,
     Leaf,
-    Calendar,
     MapPin,
     Thermometer,
     Droplets,

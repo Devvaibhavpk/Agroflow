@@ -44,6 +44,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import Link from 'next/link';
 
 // Lazy Supabase client creation to avoid build-time errors
 function getSupabaseClient() {
@@ -180,7 +181,6 @@ export default function DashboardPage() {
   const [pumpStatus, setPumpStatus] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [demoMode, setDemoMode] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [recommendations, setRecommendations] = useState<CropRecommendation[]>([]);
@@ -230,7 +230,7 @@ export default function DashboardPage() {
   }, [sensorData]);
 
   // Use demo data as fallback
-  const useDemoData = () => {
+  const setDemoData = () => {
     const demoLatest = DEMO_SENSOR_DATA[DEMO_SENSOR_DATA.length - 1];
     setLatestData(demoLatest);
     setSensorData(DEMO_SENSOR_DATA);
@@ -239,18 +239,17 @@ export default function DashboardPage() {
     setRecommendations(DEMO_RECOMMENDATIONS);
     setAlerts(DEMO_ALERTS);
     setIsOnline(false);
-    setDemoMode(true);
     setLoading(false);
   };
 
   // Fetch all data
-  const fetchData = async () => {
+  const fetchData = useMemo(() => async () => {
     const supabase = getSupabaseClient();
 
     if (!supabase) {
       // Use demo data when database is not configured
       console.log('Database not configured, using demo data');
-      useDemoData();
+      setDemoData();
       return;
     }
 
@@ -316,11 +315,11 @@ export default function DashboardPage() {
     } catch (err) {
       console.error('Error fetching data, using demo data:', err);
       // Fallback to demo data instead of showing error
-      useDemoData();
+      setDemoData();
     } finally {
       setRefreshing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -345,7 +344,7 @@ export default function DashboardPage() {
     return () => {
       supabase.removeChannel(subscription);
     };
-  }, []);
+  }, [fetchData]);
 
   const handlePumpStatusChange = async (newStatus: boolean) => {
     setPumpStatus(newStatus);
@@ -687,7 +686,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <a href="/traceability" className="flex items-center gap-3 p-4 rounded-xl bg-white hover:bg-purple-50 border border-purple-100 transition-all hover:shadow-md group">
+                  <Link href="/traceability" className="flex items-center gap-3 p-4 rounded-xl bg-white hover:bg-purple-50 border border-purple-100 transition-all hover:shadow-md group">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform">
                       <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 2L2 7l10 5 10-5-10-5z" />
@@ -698,8 +697,8 @@ export default function DashboardPage() {
                       <p className="font-semibold text-gray-900">NFT Traceability</p>
                       <p className="text-xs text-gray-500">Mint harvest batches</p>
                     </div>
-                  </a>
-                  <a href="/chatbot" className="flex items-center gap-3 p-4 rounded-xl bg-white hover:bg-green-50 border border-green-100 transition-all hover:shadow-md group">
+                  </Link>
+                  <Link href="/chatbot" className="flex items-center gap-3 p-4 rounded-xl bg-white hover:bg-green-50 border border-green-100 transition-all hover:shadow-md group">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
                       <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <rect x="3" y="3" width="18" height="18" rx="2" />
@@ -710,8 +709,8 @@ export default function DashboardPage() {
                       <p className="font-semibold text-gray-900">AgriBot AI</p>
                       <p className="text-xs text-gray-500">Ask farming questions</p>
                     </div>
-                  </a>
-                  <a href="/verify/AF-DEMO-001" className="flex items-center gap-3 p-4 rounded-xl bg-white hover:bg-blue-50 border border-blue-100 transition-all hover:shadow-md group">
+                  </Link>
+                  <Link href="/verify/AF-DEMO-001" className="flex items-center gap-3 p-4 rounded-xl bg-white hover:bg-blue-50 border border-blue-100 transition-all hover:shadow-md group">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center group-hover:scale-110 transition-transform">
                       <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -722,7 +721,7 @@ export default function DashboardPage() {
                       <p className="font-semibold text-gray-900">Verify Demo</p>
                       <p className="text-xs text-gray-500">See consumer view</p>
                     </div>
-                  </a>
+                  </Link>
                 </div>
               </CardContent>
             </Card>

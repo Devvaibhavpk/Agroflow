@@ -10,18 +10,15 @@ import {
   Wifi,
   Droplets,
   Brain,
-  Smartphone,
   BarChart3,
-  Zap,
   ArrowRight,
   CheckCircle2,
   Github,
   Link2,
-  Shield,
   QrCode,
   Gem,
-  Bot,
-  FileText
+  FileText,
+  Shield
 } from 'lucide-react';
 
 export default function AboutPage() {

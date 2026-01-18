@@ -154,7 +154,7 @@ Respond naturally as a helpful farm assistant:`;
                 console.log(`✅ Response generated using: ${modelName}`);
                 return text;
             }
-        } catch (error) {
+        } catch {
             console.log(`⚠️ Model ${modelName} failed, trying next...`);
             continue;
         }

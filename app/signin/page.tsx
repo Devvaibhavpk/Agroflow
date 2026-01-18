@@ -14,7 +14,7 @@ import { Loader2, Mail, Lock, Eye, EyeOff, Leaf } from "lucide-react";
 import Image from "next/image";
 
 export default function SignInPage() {
-  const { signInWithEmail, signInWithGoogle, isLoading } = useAuth();
+  const { signInWithEmail, isLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -31,14 +31,6 @@ export default function SignInPage() {
     if (error) {
       setError(error.message);
       setLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setError(null);
-    const { error } = await signInWithGoogle();
-    if (error) {
-      setError(error.message);
     }
   };
 

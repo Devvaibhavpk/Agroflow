@@ -15,7 +15,6 @@ import {
     QrCode,
     Shield,
     ShieldCheck,
-    Clock,
     Calendar,
     MapPin,
     Thermometer,
@@ -25,7 +24,6 @@ import {
     Copy,
     Check,
     Loader2,
-    Link2,
     Wheat,
     BadgeCheck,
     Gem
