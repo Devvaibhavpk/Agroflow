@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Input } from "@/components/ui/input";
@@ -11,12 +13,15 @@ import { Download, Search, Calendar as CalendarIcon } from 'lucide-react';
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
-// Supabase configuration
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-// Create Supabase client
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Lazy Supabase client creation to avoid build-time errors
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (supabaseUrl && supabaseAnonKey) {
+    return createClient(supabaseUrl, supabaseAnonKey);
+  }
+  return null;
+}
 
 interface SensorData {
   id: number;
@@ -38,6 +43,13 @@ export default function LogPage() {
   // Fetch sensor data from Supabase
   useEffect(() => {
     const fetchSensorData = async () => {
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        setLoading(false);
+        setError('Database not configured');
+        return;
+      }
+
       try {
         setLoading(true);
         let query = supabase.from('sensordata').select('*').order('inserted_at', { ascending: false });
@@ -46,7 +58,7 @@ export default function LogPage() {
         if (date) {
           const formattedDate = format(date, 'yyyy-MM-dd');
           query = query.gte('inserted_at', `${formattedDate}T00:00:00Z`)
-                       .lt('inserted_at', `${formattedDate}T23:59:59Z`);
+            .lt('inserted_at', `${formattedDate}T23:59:59Z`);
         }
 
         // Apply time frame filter
@@ -82,8 +94,8 @@ export default function LogPage() {
   }, [date, timeFrame]);
 
   // Filter data based on search term
-  const filteredData = sensorData.filter(data => 
-    Object.values(data).some(value => 
+  const filteredData = sensorData.filter(data =>
+    Object.values(data).some(value =>
       String(value).toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
@@ -92,7 +104,7 @@ export default function LogPage() {
   const downloadCSV = () => {
     const csvContent = [
       'ID,Temperature,Humidity,Moisture,Motor State,Timestamp',
-      ...filteredData.map(data => 
+      ...filteredData.map(data =>
         `${data.id},${data.temperature},${data.humidity},${data.moisture},${data.motor_state},${data.inserted_at}`
       )
     ].join('\n');
@@ -199,8 +211,8 @@ export default function LogPage() {
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-blue-500" 
+                      <div
+                        className="h-full bg-blue-500"
                         style={{ width: `${data.moisture}%` }}
                       />
                     </div>
@@ -210,8 +222,8 @@ export default function LogPage() {
                 <TableCell>
                   <span className={cn(
                     "px-2 py-1 rounded-full text-xs font-medium",
-                    data.motor_state 
-                      ? "bg-green-100 text-green-700" 
+                    data.motor_state
+                      ? "bg-green-100 text-green-700"
                       : "bg-red-100 text-red-700"
                   )}>
                     {data.motor_state ? 'ON' : 'OFF'}
