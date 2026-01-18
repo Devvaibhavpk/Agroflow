@@ -1,6 +1,8 @@
 // utils/motion.ts
 import { Variants } from "framer-motion";
 
+type TransitionType = "spring" | "tween" | "inertia";
+
 export const staggerContainer = (staggerChildren?: number, delayChildren?: number): Variants => ({
   hidden: {},
   show: {
@@ -11,7 +13,7 @@ export const staggerContainer = (staggerChildren?: number, delayChildren?: numbe
   },
 });
 
-export const fadeIn = (direction: 'up' | 'down' | 'left' | 'right', type: string, delay: number, duration: number): Variants => ({
+export const fadeIn = (direction: 'up' | 'down' | 'left' | 'right', type: TransitionType, delay: number, duration: number): Variants => ({
   hidden: {
     opacity: 0,
     y: direction === 'up' ? 80 : direction === 'down' ? -80 : 0,
@@ -30,7 +32,7 @@ export const fadeIn = (direction: 'up' | 'down' | 'left' | 'right', type: string
   },
 });
 
-export const slideIn = (direction: 'left' | 'right', type: string, delay: number, duration: number): Variants => ({
+export const slideIn = (direction: 'left' | 'right', type: TransitionType, delay: number, duration: number): Variants => ({
   hidden: {
     opacity: 0,
     x: direction === 'left' ? '-100%' : '100%',
